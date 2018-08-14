@@ -91,8 +91,8 @@ comparison
 | (add)					| Nlmsg.put_sized_header	|  				|
 | (add)					| Nlmsg.put_sized_header_raw	|  				|
 | (add)					| Nlmsg.put_sized_header	|  				|
-| mnl_nlmsg_get_paylod			| Nlmsg.payload			| 				|
-| mnl_nlmsg_get_paylod			| Nlmsg.payload_mut		| 				|
+| mnl_nlmsg_get_payload			| Nlmsg.payload			| 				|
+| mnl_nlmsg_get_payload			| Nlmsg.payload_mut		| 				|
 | mnl_nlmsg_get_payload_offset		| Nlmsg.payload_offset		| 				|
 | mnl_nlmsg_get_payload_offset		| Nlmsg.payload_offset_mut	| 				|
 | mnl_nlmsg_ok				| Nlmsg.ok			| 				|

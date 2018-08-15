@@ -2,6 +2,10 @@
 // and not any kind of function definitions.  It is shared between kernel and
 // userspace.  Don't put kernel specific stuff in here
 
+use std::mem::size_of;
+use {Attr, AttrDataType, CbRet};
+
+
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
 #[repr(u16)]
@@ -82,6 +86,54 @@ pub const NFULA_CT: u16			= AttrType::CT as u16;
 pub const NFULA_CT_INFO: u16		= AttrType::CT_INFO as u16;
 pub const __NFULA_MAX: u16		= AttrType::_MAX as u16;
 pub const NFULA_MAX: u16		= __NFULA_MAX - 1;
+
+
+pub fn parse_attr_cb<'a>(attr: &'a Attr, tb: &mut [Option<&'a Attr>]) -> CbRet {
+    let atype = attr.atype();
+
+    // skip unsupported attribute in user-space
+    if let Err(_) = attr.type_valid(NFULA_MAX) {
+        return CbRet::OK;
+    }
+
+    match atype {
+        n if (n == NFULA_MARK as u16
+            || n == NFULA_IFINDEX_INDEV as u16
+            || n == NFULA_IFINDEX_OUTDEV as u16
+            || n == NFULA_IFINDEX_PHYSINDEV as u16
+            || n == NFULA_IFINDEX_PHYSOUTDEV as u16
+            || n == NFULA_CT_INFO as u16) =>
+        {
+            if let Err(_) = attr.validate(AttrDataType::U32) {
+                return CbRet::ERROR;
+            }
+        }
+        n if n == NFULA_TIMESTAMP as u16 => {
+            if let Err(_) = attr.validate2(
+                AttrDataType::UNSPEC,
+                size_of::<MsgPacketTimestamp>(),
+            ) {
+                return CbRet::ERROR;
+            }
+        }
+        n if n == NFULA_HWADDR as u16 => {
+            if let Err(_) =
+                attr.validate2(AttrDataType::STRING, size_of::<MsgPacketHw>())
+            {
+                return CbRet::ERROR;
+            }
+        }
+        n if n == NFULA_PREFIX as u16 => {
+            if let Err(_) = attr.validate(AttrDataType::NUL_STRING) {
+                return CbRet::ERROR;
+            }
+        }
+        n if n == NFULA_PAYLOAD as u16 => {}
+        _ => {}
+    }
+    tb[atype as usize] = Some(attr);
+    CbRet::OK
+}
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone)]
